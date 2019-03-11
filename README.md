@@ -1,1 +1,3 @@
-# mentor-dashboard-google-script
+### How to use:
+
+Explanation comming soon!
