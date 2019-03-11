@@ -1,25 +1,32 @@
 function writeDataToFirebase() {
-  var mentorStudentPairsWB = SpreadsheetApp.openById("{{MENTOR_STUDENT_PAIRS}}");
-  var mentorScoreWB = SpreadsheetApp.openById("{{SCORE}}");
-  var tasksListWB = SpreadsheetApp.openById("{{TASKS}}");
+	const FIREBASE_URL = '';
+	const FIREBASE_DATABASE_SECRET = '';
+
+	const MENTOR_STUDENT_PAIRS_SHEET_ID = '';
+	const SCORE_SHEET_ID = '';
+	const TASKS_SHEET_ID = '';
+	
+  const mentorStudentPairsWB = SpreadsheetApp.openById(MENTOR_STUDENT_PAIRS_SHEET_ID);
+  const mentorScoreWB = SpreadsheetApp.openById(SCORE_SHEET_ID);
+  const tasksListWB = SpreadsheetApp.openById(TASKS_SHEET_ID);
   
-  var mentorGithub = mentorStudentPairsWB.getSheets()[1];
-  var studentGithub = mentorStudentPairsWB.getSheets()[0];
-  var tasksList = tasksListWB.getSheets()[0];
-  var mentorScore = mentorScoreWB.getSheets()[0];
+  const mentorGithub = mentorStudentPairsWB.getSheets()[1];
+  const studentGithub = mentorStudentPairsWB.getSheets()[0];
+  const tasksList = tasksListWB.getSheets()[0];
+  const mentorScore = mentorScoreWB.getSheets()[0];
   
-  var mentorGithubData = mentorGithub.getDataRange().getValues();
-  var studentGithubData = studentGithub.getDataRange().getValues();
-  var tasksListData = tasksList.getDataRange().getValues();
-  var mentorScoreData = mentorScore.getDataRange().getValues();
+  const mentorGithubData = mentorGithub.getDataRange().getValues();
+  const studentGithubData = studentGithub.getDataRange().getValues();
+  const tasksListData = tasksList.getDataRange().getValues();
+  const mentorScoreData = mentorScore.getDataRange().getValues();
   
-  var data = {
+  const data = {
     mentors: [],
     tasks: []
   }
   
-  for(var i = 1; i < mentorGithubData.length; i++) {
-    var mentor = {
+  for(const i = 1; i < mentorGithubData.length; i++) {
+    const mentor = {
       fullName: mentorGithubData[i][0].toLowerCase() + ' ' + mentorGithubData[i][1].toLowerCase(),
       githubUsername: mentorGithubData[i][4].replace(/^.*:\/\/github\.com\//, '').replace('/', '').toLowerCase(),
       students: []
@@ -27,8 +34,8 @@ function writeDataToFirebase() {
     data.mentors.push(mentor);
   }
   
-  for(var i = 1; i < studentGithubData.length; i++) {
-    for (var j = 0; j < data.mentors.length; j++ ) {
+  for(const i = 1; i < studentGithubData.length; i++) {
+    for (const j = 0; j < data.mentors.length; j++ ) {
       if (studentGithubData[i][0].toLowerCase() === data.mentors[j].fullName) {
         data.mentors[j].students.push({ 
           github: String(studentGithubData[i][1]).trim().toLowerCase(), 
@@ -37,11 +44,11 @@ function writeDataToFirebase() {
     }
   }
   
-  var tasks = [];
+  const tasks = [];
   
-  for(var i = 1; i < tasksListData.length; i++) {
+  for(const i = 1; i < tasksListData.length; i++) {
     if (tasksListData[i][0] && tasksListData[i][2]) {
-      var taskObj = {
+      const taskObj = {
         taskName: tasksListData[i][0],
         status: tasksListData[i][2].trim().toLowerCase()
       };
@@ -69,10 +76,10 @@ function writeDataToFirebase() {
 
   mergeTasksAndMainDataObject(tasks, data);
   
-  var scores = [];
+  const scores = [];
   
-  for(var i = 1; i < mentorScoreData.length; i++) {
-    var scoreObj = {
+  for(const i = 1; i < mentorScoreData.length; i++) {
+    const scoreObj = {
       task: String(mentorScoreData[i][3]).trim().toLowerCase().replace(/[^a-zA-Z\d\s:]|\s+/gm, ''),
       mentor: String(mentorScoreData[i][1]).trim().replace(/^.*:\/\/github\.com\//, '').replace('/', '').toLowerCase(),
       student: mentorScoreData[i][2].trim()
@@ -86,7 +93,7 @@ function writeDataToFirebase() {
   };
   
   function addTaskStatus(taskArr, scoreArr, mainDataObj) {
-    var checkedTasks = {};
+    const checkedTasks = {};
 
     taskArr.forEach(function(task) {
       checkedTasks[task.taskName.trim().toLowerCase().replace(/[^a-zA-Z\d\s:]|\s+/gm, '')] = {
@@ -120,8 +127,6 @@ function writeDataToFirebase() {
 
   addTaskStatus(tasks, scores, data);
     
-  var firebaseUrl = "{{FIREBASE_URL}}";
-  var secret = "{{DATABASE_SECRET}}";
-  var base = FirebaseApp.getDatabaseByUrl(firebaseUrl, secret);
+  const base = FirebaseApp.getDatabaseByUrl(FIREBASE_URL, FIREBASE_DATABASE_SECRET);
   base.setData("JSONData", data);
 }
