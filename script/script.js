@@ -28,7 +28,10 @@ function writeDataToFirebase() {
   for(const i = 1; i < mentorGithubData.length; i++) {
     const mentor = {
       fullName: mentorGithubData[i][0].toLowerCase() + ' ' + mentorGithubData[i][1].toLowerCase(),
-      githubUsername: mentorGithubData[i][4].replace(/^.*:\/\/github\.com\//, '').replace('/', '').toLowerCase(),
+			githubUsername: mentorGithubData[i][4]
+				.replace(/^.*:\/\/github\.com\//, '')
+				.replace('/', '')
+				.toLowerCase(),
       students: []
     };
     data.mentors.push(mentor);
@@ -80,8 +83,15 @@ function writeDataToFirebase() {
   
   for(const i = 1; i < mentorScoreData.length; i++) {
     const scoreObj = {
-      task: String(mentorScoreData[i][3]).trim().toLowerCase().replace(/[^a-zA-Z\d\s:]|\s+/gm, ''),
-      mentor: String(mentorScoreData[i][1]).trim().replace(/^.*:\/\/github\.com\//, '').replace('/', '').toLowerCase(),
+			task: String(mentorScoreData[i][3])
+				.trim()
+				.toLowerCase()
+				.replace(/[^a-zA-Z\d\s:]|\s+/gm, ''),
+			mentor: String(mentorScoreData[i][1])
+				.trim()
+				.replace(/^.*:\/\/github\.com\//, '')
+				.replace('/', '')
+				.toLowerCase(),
       student: mentorScoreData[i][2].trim()
         .replace(/^.*:\/\/github\.com\//, '')
         .replace('/', '')
@@ -113,7 +123,8 @@ function writeDataToFirebase() {
     mainDataObj.mentors.forEach(function(mentor) {
       mentor.students.forEach(function(student) {
         student.tasks.forEach(function(task) {
-          if (checkedTasks[task.taskName.trim().toLowerCase().replace(/[^a-zA-Z\d\s:]|\s+/gm, '')].students.indexOf(student.github) !== -1) {
+					if (checkedTasks[task.taskName.trim().toLowerCase().replace(/[^a-zA-Z\d\s:]|\s+/gm, '')]
+					.students.indexOf(student.github) !== -1) {
             Object.defineProperties(task, {
               status: {
                 value: 'checked',
