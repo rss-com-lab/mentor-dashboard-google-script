@@ -20,11 +20,8 @@ function writeDataToFirebase() {
   }
   
   const pairs = {};
-  
   const mentorStudentPairs = {};
-  
   const normalizedTaskPairs = {};
-  
   const activeStudents = [];
   
   function normalizeString (string) {
