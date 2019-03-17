@@ -43,7 +43,11 @@ function writeDataToFirebase() {
   
   tasksListData.forEach(function(row, index) {
     if (index > 0) {
-      const taskName = row[0].replace('-', '').trim().replace(/\$|\#|\[|\]|\/|\./gm, '');
+      const taskName = row[0]
+          .replace('-', '')
+          .trim()
+          .replace(/\$|\#|\[|\]|\/|\./gm, '')
+          .replace('CodeJam', 'Code Jam');
       const taskLink = row[1];
       const taskStatus = row[2];
     
