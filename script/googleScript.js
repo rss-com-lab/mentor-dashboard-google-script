@@ -24,6 +24,14 @@ function writeDataToFirebase() {
   const normalizedTaskPairs = {};
   const activeStudents = [];
   
+  function isEmpty(obj) {
+    for(var key in obj) {
+        if(obj.hasOwnProperty(key))
+            return false;
+    }
+    return true;
+  };
+  
   function normalizeString (string) {
     return string.trim()
         .replace(/^.*:\/\/github\.com\//, '')
@@ -103,6 +111,18 @@ function writeDataToFirebase() {
         if (activeStudents.indexOf(studentID) === -1) {activeStudents.push(studentID)};
       }
     }
+  });
+  
+  const mentors = Object.keys(data.mentors);
+  
+  mentors.forEach(function (mentor) {
+    const students = Object.keys(data.mentors[mentor].mentorStudents);
+    
+    students.forEach(function (student){
+      if (isEmpty(data.mentors[mentor].mentorStudents[student].tasks)) {
+        delete data.mentors[mentor].mentorStudents[student];
+      }
+    });
   });
   
   data.taskCount = activeStudents.length;
