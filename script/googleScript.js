@@ -25,20 +25,18 @@ function writeDataToFirebase() {
   const activeStudents = [];
   
   function isEmpty(obj) {
-    for(var key in obj) {
-        if(obj.hasOwnProperty(key))
-            return false;
-    }
-    return true;
+    if (Object.keys(obj).length !== 1) {
+      return false;
+    } else return true;
   };
   
   function normalizeString (string) {
     return string.trim()
-        .replace(/^.*:\/\/github\.com\//, '')
-        .replace('/', '')
-        .replace('rolling-scopes-school', '')
-        .replace(/-20\d{2}\w{1}\d{1}/, '')
-        .toLowerCase();
+      .replace(/^.*:\/\/github\.com\//, '')
+      .replace('/', '')
+      .replace('rolling-scopes-school', '')
+      .replace(/-20\d{2}\w{1}\d{1}/, '')
+      .toLowerCase();
   };
   
   tasksListData.forEach(function(row, index) {
@@ -50,12 +48,14 @@ function writeDataToFirebase() {
           .replace('CodeJam', 'Code Jam');
       const taskLink = row[1];
       const taskStatus = row[2];
+      const checkTaskTime = row[3];
     
       const task = {
         taskName: taskName,
         taskStatus: taskStatus,
         taskLink: taskLink,
-        taskCount: 0
+        taskCount: 0,
+        checkTaskTime: checkTaskTime,
       };
     
       data.tasksStatus[taskName] = task;
@@ -80,7 +80,7 @@ function writeDataToFirebase() {
       data.mentors[normalizeString(row[4])] = mentor;
     }
   });
-  
+    
   studentGithubData.forEach(function (row, index) {
     if (index > 0) {
       const mentorID = pairs[row[0]];
@@ -91,39 +91,55 @@ function writeDataToFirebase() {
         mentorGithub: mentorID,
         studentGithub: 'https://github.com/' + row[1],
         studentName: studentID,
-        tasks: {},
-        prLinks: {},
+        tasks: {
+          tasks: true,
+        },
+        prLinks: {
+          prLinks: true,
+        },
+        studentStatus: null,
       }
     
       mentorStudentPairs[studentID] = mentorID;
       mentorObj.mentorStudents[studentID] = studentData;
     }
   });
-
+  
   mentorScoreData.forEach(function(row, index) {
     if (index > 0) {
       const studentID = normalizeString(row[2]);
       const taskName = row[3].trim().toLowerCase().replace(/[^a-zA-Z\d\s:]|\s+/gm, '');
       const mentorObj = data.mentors[mentorStudentPairs[studentID]];
+      const action = row[7];
       if (!mentorStudentPairs[studentID]) return;
 
       if (mentorObj.mentorStudents[studentID]) {
-        data.tasksStatus[normalizedTaskPairs[taskName]].taskCount += 1;
+        if (taskName) {
+          data.tasksStatus[normalizedTaskPairs[taskName]].taskCount += 1;
+        }
         mentorObj.mentorStudents[studentID].tasks[row[3].replace(/\$|\#|\[|\]|\/|\./gm, '')] = row[5];
         mentorObj.mentorStudents[studentID].prLinks[row[3].replace(/\$|\#|\[|\]|\/|\./gm, '')] = row[4];
         
         if (activeStudents.indexOf(studentID) === -1) {activeStudents.push(studentID)};
+      }
+      
+      if (action === 'Отчислить студента') {
+        mentorObj.mentorStudents[studentID].studentStatus = 'dismissed';
+        mentorObj.mentorStudents[studentID].reasonDismiss = row[8];
+      } else {
+        mentorObj.mentorStudents[studentID].studentStatus = 'active';
       }
     }
   });
   
   const mentors = Object.keys(data.mentors);
   
-  mentors.forEach(function (mentor) {
+  mentors.forEach(function (mentor, index) {    
     const students = Object.keys(data.mentors[mentor].mentorStudents);
     
-    students.forEach(function (student){
-      if (isEmpty(data.mentors[mentor].mentorStudents[student].tasks)) {
+    students.forEach(function (student, index) {
+      if (isEmpty(data.mentors[mentor].mentorStudents[student].tasks) 
+          && !data.mentors[mentor].mentorStudents[student].studentStatus) {
         delete data.mentors[mentor].mentorStudents[student];
       }
     });
